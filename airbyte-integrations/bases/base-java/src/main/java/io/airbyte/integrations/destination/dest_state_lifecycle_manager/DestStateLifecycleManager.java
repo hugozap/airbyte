@@ -18,7 +18,7 @@ import java.util.Queue;
  * </ol>
  *
  * Since the methods for flushing and committing are not atomic, adding in a method
- * `markPendingAsCommitted` while deprecating `
+ * `markPendingAsCommitted` while deprecating `markPendingAsFlushed`
  */
 public interface DestStateLifecycleManager {
 
@@ -32,7 +32,7 @@ public interface DestStateLifecycleManager {
   /**
    * Moves any tracked state messages that are currently pending to flushed.
    *
-   * @Deprecated
+   * @Deprecated since destination checkpointing will be bundling flush & commit into the same operation
    */
   void markPendingAsFlushed();
 
@@ -51,10 +51,11 @@ public interface DestStateLifecycleManager {
   void markFlushedAsCommitted();
 
   /**
-   * Moves any committed state message that are emitted to the platform as emitted. This is to avoid
-   * emitting duplicate state messages back to the platform
+   * Clears any committed state messages, this is called after returning the state message to the
+   * platform. The rationale behind this logic is to avoid returning duplicated state messages that
+   * would otherwise be held in the `committed` state
    */
-  void markCommittedAsEmitted();
+  void clearCommitted();
 
   /**
    * Moves any tracked state messages that are currently pending to committed.
@@ -75,5 +76,7 @@ public interface DestStateLifecycleManager {
    * @return list of state messages
    */
   Queue<AirbyteMessage> listCommitted();
+
+  boolean supportsPerStreamFlush();
 
 }
