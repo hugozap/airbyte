@@ -51,6 +51,7 @@ import io.airbyte.commons.json.Jsons;
 import io.airbyte.commons.lang.MoreBooleans;
 import io.airbyte.config.ActorCatalog;
 import io.airbyte.config.ActorCatalogFetchEvent;
+import io.airbyte.config.StandardSourceDefinition;
 import io.airbyte.config.StandardSync;
 import io.airbyte.config.persistence.ConfigNotFoundException;
 import io.airbyte.config.persistence.ConfigRepository;
@@ -544,8 +545,9 @@ public class WebBackendConnectionsHandler {
       if (mostRecentActorCatalog.isPresent()) {
         final io.airbyte.protocol.models.AirbyteCatalog mostRecentAirbyteCatalog =
             Jsons.object(mostRecentActorCatalog.get().getCatalog(), io.airbyte.protocol.models.AirbyteCatalog.class);
+        final StandardSourceDefinition sourceDefinition = configRepository.getStandardSourceDefinition(originalConnectionRead.getSourceId());
         final CatalogDiff catalogDiff =
-            connectionsHandler.getDiff(newAirbyteCatalog, CatalogConverter.toApi(mostRecentAirbyteCatalog),
+            connectionsHandler.getDiff(newAirbyteCatalog, CatalogConverter.toApi(mostRecentAirbyteCatalog, sourceDefinition),
                 CatalogConverter.toProtocol(newAirbyteCatalog));
         breakingChange = containsBreakingChange(catalogDiff);
       }
