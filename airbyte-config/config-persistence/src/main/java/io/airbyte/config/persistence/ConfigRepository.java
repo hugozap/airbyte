@@ -1355,11 +1355,11 @@ public class ConfigRepository {
     // noinspection SqlResolve
     return database.query(ctx -> ctx.fetch(
         """
-        select actor_catalog_id, actor_id, created_at from
-          (select actor_catalog_id, actor_id, created_at, rank() over (partition by actor_id order by created_at desc) as creation_order_rank
+        select distinct actor_catalog_id, actor_id, created_at from
+          (select actor_catalog_id, actor_id, created_at, row_number() over (partition by actor_id order by created_at desc) as creation_order_row_number
           from public.actor_catalog_fetch_event
           ) table_with_rank
-        where creation_order_rank = 1;
+        where creation_order_row_number = 1;
         """))
         .stream().map(DbConverter::buildActorCatalogFetchEvent)
         .collect(Collectors.toMap(ActorCatalogFetchEvent::getActorId, record -> record));
